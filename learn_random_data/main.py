@@ -1,5 +1,4 @@
-import generate_data as gd
-import os
+from learn_random_data.utils.generate_data import generate_random_data
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -57,7 +56,9 @@ def hidden_to_output_synaptic_weights():
 
 print("init done")
 
-h1 = torch.einsum("abc,cd->abd", (gd.generate_random_data(5),  input_to_hidden_synaptic_weights()))
+
+def multiply_input_spikes_with_weight_matrix():
+    return torch.einsum("abc,cd->abd", (generate_random_data(5),  input_to_hidden_synaptic_weights()))
 
 
 # this is the heaviside function
@@ -80,7 +81,7 @@ for t in range(nb_steps):
     out = spike_fn(mthr)
     rst = out.detach()  # We do not want to backprop through the reset
 
-    new_syn = alpha() * syn + h1[:, t]
+    new_syn = alpha() * syn + multiply_input_spikes_with_weight_matrix()[:, t]
     new_mem = (beta() * mem + syn) * (1.0 - rst)
 
     mem_rec.append(mem)
