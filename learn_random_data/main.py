@@ -1,37 +1,24 @@
-from learn_random_data.utils.generate_data import generate_random_data
-
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
-
 import torch
 import torch.nn as nn
-
-nb_inputs = 100
-nb_hidden = 4
-nb_outputs = 2
-time_step = 1e-3
-nb_steps = 200
-batch_size = 256
-
-tau_mem = 10e-3
-tau_syn = 5e-3
-
-dtype = torch.float
-device = torch.device("cpu")
+from learn_random_data.utils.generate_data import generate_random_data
+from learn_random_data.utils.model_parameters import BATCH_SIZE, DEVICE, DTYPE, NB_INPUTS, NB_STEPS, TIME_STEP,\
+    NB_HIDDEN, NB_OUTPUTS, TAU_MEM, TAU_SYN
 
 
 def alpha():
-    return float(np.exp(-time_step/tau_syn))
+    return float(np.exp(-TIME_STEP/TAU_SYN))
 
 
 def beta():
-    return float(np.exp(-time_step/tau_mem))
+    return float(np.exp(-TIME_STEP/TAU_MEM))
 
 
 def y_data():  # random labels for the random data
-    return torch.tensor(1*(np.random.rand(batch_size) < 0.5), device=device)
+    return torch.tensor(1*(np.random.rand(BATCH_SIZE) < 0.5), device=DEVICE)
 
 
 def weight_scale():
@@ -39,18 +26,18 @@ def weight_scale():
 
 
 def initialize_weight_tensor(layer1, layer2):
-    return torch.empty((layer1, layer2),  device=device, dtype=dtype, requires_grad=True)
+    return torch.empty((layer1, layer2),  device=DEVICE, dtype=DTYPE, requires_grad=True)
 
 
 def input_to_hidden_synaptic_weights():
-    w1 = initialize_weight_tensor(nb_inputs, nb_hidden)
-    torch.nn.init.normal_(w1, mean=0.0, std=weight_scale()/np.sqrt(nb_inputs))
+    w1 = initialize_weight_tensor(NB_INPUTS, NB_HIDDEN)
+    torch.nn.init.normal_(w1, mean=0.0, std=weight_scale()/np.sqrt(NB_INPUTS))
     return w1
 
 
 def hidden_to_output_synaptic_weights():
-    w2 = initialize_weight_tensor(nb_hidden, nb_outputs)
-    torch.nn.init.normal_(w2, mean=0.0, std=weight_scale()/np.sqrt(nb_hidden))
+    w2 = initialize_weight_tensor(NB_HIDDEN, NB_OUTPUTS)
+    torch.nn.init.normal_(w2, mean=0.0, std=weight_scale()/np.sqrt(NB_HIDDEN))
     return w2
 
 
@@ -68,15 +55,15 @@ def spike_fn(x):
     return out
 
 
-syn = torch.zeros((batch_size, nb_hidden), device=device, dtype=dtype)
-mem = torch.zeros((batch_size, nb_hidden), device=device, dtype=dtype)
+syn = torch.zeros((BATCH_SIZE, NB_HIDDEN), device=DEVICE, dtype=DTYPE)
+mem = torch.zeros((BATCH_SIZE, NB_HIDDEN), device=DEVICE, dtype=DTYPE)
 
 # Here we define two lists which we use to record the membrane potentials and output spikes
 mem_rec = []
 spk_rec = []
 
 # Here we loop over time
-for t in range(nb_steps):
+for t in range(NB_STEPS):
     mthr = mem - 1.0
     out = spike_fn(mthr)
     rst = out.detach()  # We do not want to backprop through the reset
